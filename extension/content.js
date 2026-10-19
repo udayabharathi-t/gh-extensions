@@ -1,4 +1,4 @@
-/* global GHECore, GHEReview */
+/* global GHECore, GHECompare, GHEReview */
 (() => {
   const api = globalThis.browser || globalThis.chrome;
   const send = async message => {
@@ -12,6 +12,7 @@
   let prefs = { mode: 'all', users: '' };
   let generation = 0;
   let observer;
+  let comparison;
   const el = (tag, text, attrs = {}) => {
     const node = document.createElement(tag);
     if (text) node.textContent = text;
@@ -69,8 +70,8 @@
     let run = 0;
     const forward = button('Load A → B', () => load(false));
     const reverse = button('Check reverse B → A', () => load(true));
-    const reset = button('Clear results', () => { run++; results.replaceChildren(); });
-    check.addEventListener('change', () => { run++; results.replaceChildren(); });
+    const reset = button('Clear results', () => { run++; comparison?.abort(); results.replaceChildren(); });
+    check.addEventListener('change', () => { run++; comparison?.abort(); results.replaceChildren(); });
     async function load(backwards) {
       if (busy) return;
       busy = true; forward.disabled = reverse.disabled = true;
@@ -82,13 +83,16 @@
       section.append(el('h3', backwards ? 'B → A · commits in A, absent from B' : 'A → B · commits in B, absent from A'), status);
       results.replaceChildren(section);
       try {
-        const commits = await send({ type: 'compare', reverse: backwards, integrationOnly });
+        comparison = new AbortController();
+        const commits = await GHECompare.load(context, { reverse: backwards, integrationOnly, signal: comparison.signal, progress: text => {
+          if (currentRun === run && currentGeneration === generation) status.textContent = text;
+        } });
         if (currentRun !== run || currentGeneration !== generation) return;
         const shown = integrationOnly ? commits.filter(commit => commit.kind !== 'ordinary') : commits;
         status.textContent = `${shown.length} shown / ${commits.length} commit${commits.length === 1 ? '' : 's'} across all pages${integrationOnly ? ' · merge / squash filter applied' : ''}.`;
         section.append(el('a', backwards ? 'Open reverse file diff ↗' : 'Open full file diff ↗', { href: `https://github.com/${context.owner}/${context.repo}/compare/${encodeURIComponent(backwards ? context.head : context.base)}...${encodeURIComponent(backwards ? context.base : context.head)}`, target: '_blank', rel: 'noopener noreferrer' }));
         if (backwards) section.append(el('p', 'These are ancestry differences, not proof of missing code: cherry-picks and rebased changes may have different SHAs.', { class: 'ghe-note' }));
-        if (integrationOnly) section.append(el('p', 'Squash detection matches the PR’s recorded merge SHA. GitHub also uses this field for the final rebased commit, so those can appear here.', { class: 'ghe-note' }));
+        if (integrationOnly) section.append(el('p', 'Squash detection uses linked PR merge information. Commits whose pages expose no PR link may be missed; final rebased commits can also match.', { class: 'ghe-note' }));
         if (!shown.length) section.append(el('p', 'No matching commits.'));
         const list = el('ol', '', { class: 'ghe-commits' });
         for (const commit of shown) {
@@ -105,11 +109,12 @@
       }
     }
     controls.append(label, forward, reverse, reset);
-    panel.append(el('p', `A: ${context.base} → B: ${context.head}`, { class: 'ghe-refs' }), controls, el('p', 'Load the complete commit list here. GitHub’s native diff stays available below.', { class: 'ghe-note' }), results);
+    panel.append(el('p', `A: ${context.base} → B: ${context.head}`, { class: 'ghe-refs' }), controls, el('p', 'Uses your signed-in GitHub session. No token needed. Follows every commit page; GitHub’s native diff stays below.', { class: 'ghe-note' }), results);
   }
   async function mount() {
     if (href === location.href && panel?.isConnected) return;
     href = location.href; generation++;
+    comparison?.abort();
     const current = generation;
     GHEReview.restore(); panel?.remove(); panel = null;
     try { context = GHECore.route(href); } catch { context = null; }

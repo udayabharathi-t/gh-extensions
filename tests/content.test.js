@@ -11,6 +11,11 @@ async function setup(path, handler) {
     if (message.type === 'savePrefs') { prefs = message.prefs; return { data: prefs }; }
     return handler?.(message) || { data: {} };
   } } };
+  dom.window.GHECompare = { load: async (context, options) => {
+    const result = handler?.({ type: 'compare', ...options }) || { data: [] };
+    if (result.error) throw new Error(result.error);
+    return result.data;
+  } };
   for (const file of ['core', 'review', 'content']) dom.window.eval(source(file));
   await tick();
   return dom;
@@ -44,11 +49,11 @@ test('reverse button sends reverse=true, renders all results safely, and links t
   } finally { dom.window.close(); }
 });
 test('compare API failure is shown with an enabled retry button', async () => {
-  const dom = await setup('compare/a...b', () => ({ error: 'Repository access requires a token' }));
+  const dom = await setup('compare/a...b', () => ({ error: 'Complete organization SSO' }));
   try {
     const button = [...dom.window.document.querySelectorAll('button')].find(e => e.textContent.includes('Load A'));
     button.click(); await tick();
-    expect(dom.window.document.querySelector('[role="status"]').textContent).toContain('requires a token');
+    expect(dom.window.document.querySelector('[role="status"]').textContent).toContain('organization SSO');
     expect(button.disabled).toBe(false);
   } finally { dom.window.close(); }
 });

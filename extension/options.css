@@ -4,7 +4,7 @@ main { max-width: 680px; margin: 56px auto; padding: 0 24px; }
 .eyebrow { color: #0969da; letter-spacing: .14em; font-weight: 700; font-size: 12px; }
 h1 { font-size: 36px; letter-spacing: -.04em; margin: 8px 0; }
 h2 { font-size: 18px; margin-top: 28px; }
-form { border: 1px solid #d1d9e0; border-radius: 12px; padding: 0 24px 16px; background: #fff; margin: 28px 0; }
+section { border: 1px solid #d1d9e0; border-radius: 12px; padding: 0 24px 16px; background: #fff; margin: 28px 0; }
 label { display: block; font-weight: 600; margin-top: 20px; }
 input { width: 100%; margin: 8px 0; padding: 10px; border: 1px solid #818b98; border-radius: 6px; background: transparent; color: inherit; }
 .help, footer { font-size: 12px; color: #59636e; }
@@ -13,4 +13,4 @@ button { cursor: pointer; background: #1f883d; color: white; padding: 8px 14px; 
 .secondary { color: inherit; background: transparent; border-color: #818b98; }
 .actions { display: flex; gap: 8px; }
 :focus-visible { outline: 2px solid #0969da; outline-offset: 3px; }
-@media (prefers-color-scheme: dark) { :root { background: #0d1117; color: #e6edf3; } form { background: #161b22; border-color: #30363d; } a, .eyebrow { color: #58a6ff; } .help, footer { color: #8b949e; } }
+@media (prefers-color-scheme: dark) { :root { background: #0d1117; color: #e6edf3; } section { background: #161b22; border-color: #30363d; } a, .eyebrow { color: #58a6ff; } .help, footer { color: #8b949e; } }

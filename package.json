@@ -1,6 +1,6 @@
 {
   "name": "gh-extensions",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "GitHub compare and pull request review focus for Chrome and Firefox",
   "scripts": {
     "test": "vitest run",
