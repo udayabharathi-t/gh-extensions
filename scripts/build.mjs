@@ -8,8 +8,8 @@ for (const target of ['chrome', 'firefox']) {
   const manifest = {
     manifest_version: 3, name: 'GH Extensions', version,
     description: 'Complete GitHub comparisons, reverse commit checks, and PR review focus by thread author.',
-    permissions: ['storage'], host_permissions: ['https://api.github.com/*'],
-    content_scripts: [{ matches: ['https://github.com/*'], js: ['core.js', 'review.js', 'content.js'], css: ['content.css'], run_at: 'document_idle' }],
+    permissions: ['storage'],
+    content_scripts: [{ matches: ['https://github.com/*'], js: ['core.js', 'compare.js', 'review.js', 'content.js'], css: ['content.css'], run_at: 'document_idle' }],
     options_ui: { page: 'options.html', open_in_tab: true },
     action: { default_title: 'GH Extensions settings' },
     icons: { 48: 'icons/48.png', 128: 'icons/128.png' },

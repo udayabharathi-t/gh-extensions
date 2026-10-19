@@ -8,12 +8,15 @@ GHECore.route = () => compareDemo ? {owner:'octocat',repo:'release-service',kind
 document.querySelector('#title').textContent = compareDemo ? 'Comparing v1.8.0…v1.9.0' : 'Make release checks resilient #42';
 document.querySelector('#subtitle').textContent = compareDemo ? 'Every commit, in both directions. Focus on the changes that landed.' : 'Conversation · 2 review threads · Try “Only mine” to focus on your review.';
 document.querySelector('#fixture').innerHTML = compareDemo ? '<div class="native-diff"><strong>Files changed</strong><p>GitHub’s original diff remains available below the extension.</p><div class="diff">+ retryPolicy: exponential\n+ maxAttempts: 3\n+ timeout: 5000</div></div>' : '<div class="review-thread"><div class="js-comment"><a class="author" href="/you">you</a> <small>started a thread · release/config.ts</small><p>Can we cover the retry limit when the upstream service is unavailable?</p></div><div class="js-comment"><a class="author" href="/teammate">teammate</a> <small>replied</small><p>Added a test for the third failed attempt and the timeout case.</p></div><textarea placeholder="Reply to this thread" aria-label="Reply to your thread"></textarea></div><div class="review-thread"><div class="js-comment"><a class="author" href="/build-bot">build-bot</a> <small>started a thread · checks.ts</small><p>Automated suggestion: rename the local variable.</p></div><div class="js-comment"><a class="author" href="/you">you</a> <small>replied</small><p>We can address that separately.</p></div></div>';
+globalThis.GHECompare = {load: async (context, options) => {
+ const entries = options.reverse ? [['5dd012a','Repair rollback migration','squash']] : [['3b17fda','Merge pull request #142: retry release checks','merge'],['8c91ed2','Add migration safeguards (#146)','squash'],['a918e2c','Add upstream timeout regression test','ordinary'],['b18d9e2','Refactor local helper','ordinary']];
+ return entries.map(([sha,title,kind])=>({sha,kind,commit:{message:title}}));
+}};
 let saved = {mode:'all',users:''};
 globalThis.chrome = {runtime:{sendMessage:async message => {
  if(message.type==='prefs')return {data:saved};
  if(message.type==='savePrefs'){saved=message.prefs;return {data:saved};}
  if(message.type==='settings'){document.querySelector('.ghe-heading button').textContent='Settings available after installation';return {data:{}};}
- const entries = message.reverse ? [['5dd012a','Repair rollback migration','squash']] : [['3b17fda','Merge pull request #142: retry release checks','merge'],['8c91ed2','Add migration safeguards (#146)','squash'],['a918e2c','Add upstream timeout regression test','ordinary'],['b18d9e2','Refactor local helper','ordinary']];
- return {data:entries.map(([sha,title,kind])=>({sha,kind,commit:{message:title}}))};
+ return {data:{}};
 }}};
 </script><script src="/extension/content.js"></script></body></html>

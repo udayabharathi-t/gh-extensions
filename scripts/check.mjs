@@ -11,7 +11,7 @@ for (const browser of ['chrome', 'firefox']) {
   const manifest = JSON.parse(await readFile(new URL('manifest.json', dir)));
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ['storage']);
-  assert.deepEqual(manifest.host_permissions, ['https://api.github.com/*']);
+  assert.equal(manifest.host_permissions, undefined);
   const files = [...manifest.content_scripts.flatMap(script => [...script.js, ...script.css]), ...Object.values(manifest.icons), manifest.options_ui.page];
   files.push(...(browser === 'chrome' ? [manifest.background.service_worker] : manifest.background.scripts));
   await Promise.all(files.map(file => readFile(new URL(file, dir))));

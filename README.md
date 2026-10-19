@@ -1,6 +1,6 @@
 # GH Extensions
 
-A small, dependency-free browser extension for focused GitHub comparisons and pull request reviews. One codebase, with Manifest V3 packages for Chrome and Firefox.
+A small, dependency-free browser extension for focused GitHub comparisons and pull request reviews. One codebase, with Manifest V3 packages for Chrome and Firefox. Uses your existing GitHub website session: no PAT, OAuth app, or API permissions needed.
 
 ![Compare preview using synthetic data](docs/compare-preview.png)
 
@@ -8,13 +8,15 @@ A small, dependency-free browser extension for focused GitHub comparisons and pu
 
 On a `github.com/OWNER/REPO/compare/A...B` page, the **GH Extensions** toolbar adds:
 
-- **Load A → B**: fetch every page of commits from the GitHub API. Enable **Merge / squash commits only** to omit intermediate work commits.
+- **Load A → B**: fetch every page of commits from the GitHub website. Enable **Merge / squash commits only** to omit intermediate work commits.
 - **Check reverse B → A**: list commits reachable from A but absent from B, with a link to the reverse file diff. Useful for investigating changes that may have been left behind.
 - Complete counts, commit links, and explicit errors when GitHub access, rate limits, or pagination prevent a complete result.
 
 The complete list is rendered in the extension panel above GitHub’s native compare view. GitHub’s original commits and file diff remain available below. No page-by-page clicking is needed. Branch names are resolved to commit SHAs before pagination so a moving branch cannot mix multiple comparisons.
 
-Merge commits are identified by multiple parents. Single-parent integration commits are identified by a merged PR whose recorded `merge_commit_sha` equals the commit SHA, even if the commit title has been edited. GitHub also records the final rebased commit in this field, so it cannot reliably distinguish every squash merge from a rebase merge. These entries are labeled **squash / PR integration**. Ordinary commits associated with a PR are not included unless they match its recorded integration SHA.
+Merge commits are identified by multiple parents read from GitHub’s commit page. For a single-parent commit, the extension follows PR links exposed in the commit list/title or commit page and checks that the PR is merged and its recorded merge SHA equals the commit SHA. These entries are labeled **squash / PR integration**. Intermediate work commits are not included merely because they link a PR.
+
+Squash detection has limits: an edited title with no exposed PR link may prevent classification, and GitHub’s recorded merge SHA can also identify the final rebased commit. The UI explains these limits. Disable the merge/squash filter to inspect every commit when completeness of classification matters.
 
 Reverse comparison checks Git ancestry. A cherry-picked, squashed, or rebased equivalent can have a different SHA; a reverse-only commit is a candidate to investigate, not proof that its code is missing. This extension does not compute patch equivalence.
 
@@ -60,19 +62,15 @@ Requires Chrome 120 or later. The ZIP is an unpacked developer build, not a Chro
 
 Requires Firefox 140 or later. Temporary add-ons are removed when Firefox restarts. A persistent Firefox installation needs Mozilla signing and an XPI; the ZIP here is an unsigned development package. Store publishing and signing are not configured.
 
-## Private repositories and API limits
+## No tokens or API permissions
 
-Comment filtering uses the page you are already viewing and needs no token. Compare features use `api.github.com`, which does not accept your website login cookie as API authentication.
+All compare work runs in the content script in your GitHub tab. It uses read-only, same-origin requests to the GitHub website with your existing browser session, including the organization access you already have through SSO. The browser sends its normal cookies; the extension never reads, exports, or stores the session cookie.
 
-For private repositories or a higher API allowance:
+The extension resolves refs through repository pages, follows GitHub’s compare commit-list pagination, and reads commit/linked PR pages to classify integration commits. It checks the collected count against GitHub’s summary and reports an error when it cannot verify a complete result. Clear results or navigating away cancels the operation.
 
-1. Open extension **Settings**, either from its GitHub toolbar or its browser toolbar icon.
-2. Create a fine-grained GitHub token with **Contents: read** and **Pull requests: read** for only the required repositories. Organization approval or SSO authorization may be required. Organizations that disallow fine-grained tokens may require an approved classic token; follow your organization’s policy.
-3. Paste and save it in the extension settings. Retry the comparison.
+No requests are made to `api.github.com`. No PAT, OAuth app, cookie permission, or external API host permission is requested. Repository content is held in the current tab’s operation memory, never persisted or sent to another service. Only your comment filter preferences are saved in local extension storage. Updating from v0.1 automatically removes any token previously saved by that version.
 
-Without a token, GitHub allows limited public API access. Classifying single-parent commits requires additional PR association lookups, so large comparisons can exhaust that allowance. The extension uses two concurrent classification requests and caches successful responses in background memory for one minute. Errors never appear as successful empty comparisons. Retry after the rate limit resets or configure an approved token.
-
-Tokens are saved in local extension storage, never sync storage, and are not encrypted by the extension. They are read only in trusted extension pages/background code and sent only as an Authorization header to `https://api.github.com`; redirects are refused. They are never inserted into GitHub pages or returned to content scripts. Remove a token from settings at any time.
+Private repositories work when they are accessible in the current GitHub browser session. If access fails, sign in and complete organization SSO normally. The extension does not bypass GitHub access controls. Large classifications require reading many commit pages; two requests run concurrently and fetched pages are reused within that operation. GitHub can still throttle website requests. Sign-in, layout, pagination, and rate-limit errors are shown explicitly.
 
 ## Development
 
@@ -80,21 +78,19 @@ Requires Node.js 22.12+ and npm. Packaging uses the `zip` command.
 
 ```sh
 npm ci
-npm test          # API, pagination, classification, DOM filters, toolbar, and navigation
+npm test          # Session requests, pagination, classification, DOM filters, toolbar, navigation
 npm run lint     # JavaScript syntax and generated manifest/resource checks
 npm run package  # Build both browsers and create artifacts/*.zip
 npm run preview  # Local demo with synthetic data at http://127.0.0.1:8765
 ```
 
-Tests include a 321-commit comparison, reverse ref ordering, incomplete pagination, squash/PR association paging, private-repository and rate-limit errors, reply preservation, exclusion of replies, safe rendering, resets, and GitHub SPA navigation. The preview uses synthetic data and never calls GitHub. Automated tests use mocked APIs and DOM fixtures; they do not replace a live extension smoke test in each browser.
+Tests include a 321-commit comparison, reverse ref ordering, incomplete pagination, squash/PR association paging, sign-in and rate-limit errors, reply preservation, exclusion of replies, safe rendering, resets, and GitHub SPA navigation. The preview uses synthetic data and never calls GitHub. Automated tests use mocked page responses and DOM fixtures. Live public-page checks cover complete pagination and parent-based merge classification. Browser smoke tests should also be run after GitHub UI changes.
 
-Runtime code has no third-party dependencies, remote scripts, telemetry, or analytics. Build/test dependencies are development-only. The extension runs only on `github.com`; self-hosted GitHub Enterprise domains are not currently supported. It requests storage access and API access only, with no write API operations.
+Runtime code has no third-party dependencies, remote scripts, telemetry, or analytics. Build/test dependencies are development-only. The extension runs only on `github.com`; self-hosted GitHub Enterprise domains are not currently supported. It requests storage for preferences and content-script access to `github.com`, with no cross-origin API access or write requests.
 
-## API and browser references
+## Browser references
 
-- [GitHub compare API and pagination](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
-- [PRs associated with a commit](https://docs.github.com/en/rest/commits/commits#list-pull-requests-associated-with-a-commit)
-- [GitHub merge SHA semantics](https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request)
+- [Content scripts and same-origin fetch in Manifest V3](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#xhr_and_fetch)
 - [Chrome content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
 - [Firefox background script compatibility](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/background)
 
