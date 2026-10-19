@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>GH Extensions settings</title><link rel="stylesheet" href="options.css"></head>
+<body><main>
+  <p class="eyebrow">GH EXTENSIONS</p><h1>A little more focus.</h1>
+  <p>Compare complete release histories. Review the conversations that matter to you.</p>
+  <form id="settings">
+    <h2>GitHub API access</h2>
+    <p>Public comparisons work without a token, within GitHub’s anonymous rate limit. Private comparisons need a token with access to the repository.</p>
+    <label for="token">Personal access token</label>
+    <input id="token" type="password" placeholder="Paste a read-only GitHub token" autocomplete="off" spellcheck="false">
+    <p class="help">Use a fine-grained token with <strong>Contents: read</strong> and <strong>Pull requests: read</strong> on the repositories you need. Your organization may require approval or SSO authorization.</p>
+    <p class="help">The token is saved only in this browser’s extension storage, without browser sync. It is sent only to api.github.com. It is not encrypted by this extension. Comment filtering does not need a token.</p>
+    <p><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create a fine-grained token on GitHub ↗</a></p>
+    <div class="actions"><button type="submit">Save token</button><button id="remove" type="button" class="secondary">Remove token</button></div>
+    <p id="status" role="status"></p>
+  </form>
+  <h2>Using review focus</h2>
+  <p>Open a pull request’s Conversation or Files changed tab. Choose “Only these authors” or “Hide these authors”, enter usernames, and Apply. “Only mine” uses the signed-in GitHub username.</p>
+  <p>Include keeps threads started by the selected authors, with every reply. Exclude hides their threads and individual replies in other threads. The same filter is remembered across PRs and tabs. Reset shows everyone again.</p>
+  <footer>Local filtering · No analytics · No third-party services</footer>
+</main><script src="options.js"></script></body></html>

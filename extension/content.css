@@ -1,0 +1,29 @@
+[data-ghe-hidden] { display: none !important; }
+#gh-extensions {
+  color: var(--fgColor-default, #1f2328); background: var(--bgColor-default, #fff);
+  border: 1px solid var(--borderColor-default, #d1d9e0); border-top: 3px solid #2f81f7;
+  border-radius: 8px; padding: 16px 20px; margin: 16px 24px; font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+#gh-extensions .ghe-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+#gh-extensions .ghe-heading strong { font-size: 16px; }
+#gh-extensions .ghe-heading span { color: var(--fgColor-muted, #59636e); flex: 1; }
+#gh-extensions .ghe-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#gh-extensions button, #gh-extensions select, #gh-extensions input[type=text] {
+  color: inherit; background: var(--bgColor-muted, #f6f8fa); border: 1px solid var(--borderColor-default, #d1d9e0);
+  border-radius: 6px; padding: 6px 12px; font: inherit; min-height: 34px;
+}
+#gh-extensions button { cursor: pointer; }
+#gh-extensions button:hover { border-color: #2f81f7; }
+#gh-extensions button:disabled { opacity: .6; cursor: progress; }
+#gh-extensions :focus-visible { outline: 2px solid #2f81f7; outline-offset: 2px; }
+#gh-extensions label { display: flex; gap: 6px; align-items: center; margin-right: 12px; }
+#gh-extensions input[type=text] { min-width: 240px; }
+#gh-extensions .ghe-note, #gh-extensions small { color: var(--fgColor-muted, #59636e); font-size: 12px; }
+#gh-extensions p { margin: 8px 0; }
+#gh-extensions .ghe-refs { font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+#gh-extensions .ghe-commits { max-height: 480px; overflow: auto; padding-left: 24px; }
+#gh-extensions li { padding: 8px 4px; border-bottom: 1px solid var(--borderColor-muted, #d1d9e0); }
+#gh-extensions li a { overflow-wrap: anywhere; }
+#gh-extensions small { display: block; }
+#gh-extensions h3 { font-size: 14px; margin-top: 16px; }
+@media (max-width: 600px) { #gh-extensions { margin: 12px 8px; padding: 12px; } #gh-extensions input[type=text] { min-width: 0; width: 100%; } }
